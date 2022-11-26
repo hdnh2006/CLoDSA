@@ -9,7 +9,7 @@ import os
 import cv2
 from joblib import Parallel, delayed
 import psutil
-
+from tqdm_joblib import tqdm_joblib
 
 def readAndGenerateImage(outputPath, transformers, i_and_imagePath):
 
@@ -89,7 +89,10 @@ class yoloLinearDetectionAugmentor(IAugmentor):
         cores_count = psutil.cpu_count(logical=False)
         if cores_count is None:
             cores_count = 1
-        Parallel(n_jobs=cores_count)(delayed(readAndGenerateImage)(self.outputPath,self.transformers,x) for x in enumerate(self.imagePaths))
+
+        # Progress bar tqdm style        
+        with tqdm_joblib(desc="Running augmentations for each image", total=len(self.imagePaths)):
+            Parallel(n_jobs=cores_count)(delayed(readAndGenerateImage)(self.outputPath,self.transformers,x) for x in enumerate(self.imagePaths))
 
 
 #

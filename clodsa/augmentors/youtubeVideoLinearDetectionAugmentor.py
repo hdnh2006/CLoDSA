@@ -8,6 +8,7 @@ import cv2
 from joblib import Parallel, delayed
 import pandas as pd
 import numpy as np
+from tqdm_joblib import tqdm_joblib
 
 
 # We need to define this function outside to work in parallel.
@@ -98,9 +99,12 @@ class YoutubeVideoLinearDetectionAugmentor(IAugmentor):
         df = pd.read_csv(self.inputPath + self.csv, header=None)
 
         # [readAndGenerateVideo(self.outputPath,self.generators,x) for x in enumerate(self.imagePaths)]
-        boxesOutput = Parallel(n_jobs=-1)(
-            delayed(readAndGenerateVideo)(self.outputPath, self.transformers, x, df) for x in
-            enumerate(self.imagePaths))
+        
+        # Progress bar tqdm style        
+        with tqdm_joblib(desc="Running augmentations for each image", total=len(self.imagePaths)):
+            boxesOutput = Parallel(n_jobs=-1)(
+                delayed(readAndGenerateVideo)(self.outputPath, self.transformers, x, df) for x in
+                enumerate(self.imagePaths))
         boxesOutput = [item for sublist in boxesOutput for item in sublist]
 
         df = pd.DataFrame(boxesOutput)

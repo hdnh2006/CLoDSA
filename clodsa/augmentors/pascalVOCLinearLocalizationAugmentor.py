@@ -8,6 +8,7 @@ import cv2
 from joblib import Parallel, delayed
 import xml.etree.ElementTree as ET
 from .utils import prettify
+from tqdm_joblib import tqdm_joblib
 
 
 
@@ -120,5 +121,7 @@ class PascalVOCLinearLocalizationAugmentor(IAugmentor):
     def applyAugmentation(self):
         self.readImagesAndAnnotations()
         #[readAndGenerateImage(self.outputPath, self.generators, x) for x in enumerate(self.imagePaths)]
-        Parallel(n_jobs=-1)(delayed(readAndGenerateImage)(self.outputPath,self.transformers,x) for x in enumerate(self.imagePaths))
+        # Progress bar tqdm style        
+        with tqdm_joblib(desc="Running augmentations for each image", total=len(self.imagePaths)):
+            Parallel(n_jobs=-1)(delayed(readAndGenerateImage)(self.outputPath,self.transformers,x) for x in enumerate(self.imagePaths))
 

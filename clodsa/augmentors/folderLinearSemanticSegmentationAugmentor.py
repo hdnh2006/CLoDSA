@@ -9,6 +9,7 @@ import os
 import cv2
 from joblib import Parallel, delayed
 import psutil
+from tqdm_joblib import tqdm_joblib
 
 
 def readAndGenerateImageSegmentation(outputPath, transformers, labelextension, i_and_imagePath):
@@ -77,9 +78,12 @@ class FolderLinearSemanticSegmentationAugmentor(IAugmentor):
         cores_count = psutil.cpu_count(logical=False)
         if cores_count is None:
             cores_count = 1
-        Parallel(n_jobs=cores_count)(delayed(readAndGenerateImageSegmentation)
-                                    (self.outputPath,self.transformers,self.labelsExtension,x)
-                                    for x in enumerate(self.imagePaths))
+            
+        # Progress bar tqdm style        
+        with tqdm_joblib(desc="Running augmentations for each image", total=len(self.imagePaths)):
+            Parallel(n_jobs=cores_count)(delayed(readAndGenerateImageSegmentation)
+                                        (self.outputPath,self.transformers,self.labelsExtension,x)
+                                        for x in enumerate(self.imagePaths))
         # This also works same
         # Without any Parallel api
         # if len(self.imagePaths) == len(self.labelPaths):

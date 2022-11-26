@@ -11,6 +11,7 @@ from joblib import Parallel, delayed
 import imutils
 from imutils import paths
 import os
+from tqdm_joblib import tqdm_joblib
 
 
 def readAndGenerateInstanceSegmentation(outputPath, transformers, imagePath):
@@ -112,8 +113,10 @@ class JSONLinearInstanceSegmentationAugmentor(IAugmentor):
     def applyAugmentation(self):
         self.readImagesAndAnnotations()
 
-        Parallel(n_jobs=-1)(delayed(readAndGenerateInstanceSegmentation)
-                                             (self.outputPath, self.transformers, imagePath)
-                                             for imagePath in self.imagePaths)
+        # Progress bar tqdm style        
+        with tqdm_joblib(desc="Running augmentations for each image", total=len(self.imagePaths)):
+            Parallel(n_jobs=-1)(delayed(readAndGenerateInstanceSegmentation)
+                                                 (self.outputPath, self.transformers, imagePath)
+                                                 for imagePath in self.imagePaths)
 
 

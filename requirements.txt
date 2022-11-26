@@ -13,3 +13,5 @@ opencv-python>=4.2
 future
 psutil
 tensorflow>=2.4
+imageio>=2.9.0
+tqdm-joblib # progress bar with like tqdm for joblib

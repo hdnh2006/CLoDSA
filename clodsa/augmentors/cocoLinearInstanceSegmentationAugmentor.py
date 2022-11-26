@@ -12,7 +12,7 @@ import json
 import cv2
 from joblib import Parallel, delayed
 import imutils
-
+from tqdm_joblib import tqdm_joblib
 
 def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, imageInfo, annotationsInfo,ignoreClasses):
     name = imageInfo[0]
@@ -88,7 +88,9 @@ class COCOLinearInstanceSegmentationAugmentor(IAugmentor):
     def applyAugmentation(self):
         self.readImagesAndAnnotations()
 
-        newannotations = Parallel(n_jobs=-1)(delayed(readAndGenerateInstanceSegmentation)
+        # Progress bar tqdm style        
+        with tqdm_joblib(desc="Running augmentations for each image", total=len(self.dictImages.keys())):
+            newannotations = Parallel(n_jobs=-1)(delayed(readAndGenerateInstanceSegmentation)
                                              (self.outputPath, self.transformers, self.imagesPath, self.dictImages[x],
                                               self.dictAnnotations[x],self.ignoreClasses)
                                              for x in self.dictImages.keys())

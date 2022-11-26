@@ -13,7 +13,7 @@ import os
 from joblib import Parallel, delayed
 import imutils
 import psutil
-
+from tqdm_joblib import tqdm_joblib
 
 def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, imageInfo, boxes,ignoreClasses):
     name = imageInfo[0]
@@ -63,10 +63,13 @@ class COCOLinearDetectionAugmentor(IAugmentor):
         cores_count = psutil.cpu_count(logical=False)
         if cores_count is None:
             cores_count = 1
-        newannotations = Parallel(n_jobs=cores_count)(delayed(readAndGenerateInstanceSegmentation)
-                                             (self.outputPath, self.transformers, self.imagesPath, self.dictImages[x],
-                                              self.dictAnnotations[x],self.ignoreClasses)
-                                             for x in self.dictImages.keys())
+            
+        # Progress bar tqdm style        
+        with tqdm_joblib(desc="Running augmentations for each image", total=len(self.dictImages.keys())):
+            newannotations = Parallel(n_jobs=cores_count)(delayed(readAndGenerateInstanceSegmentation)
+                                                 (self.outputPath, self.transformers, self.imagesPath, self.dictImages[x],
+                                                  self.dictAnnotations[x],self.ignoreClasses)
+                                                 for x in self.dictImages.keys())
         data = {}
         data['info'] = self.info
         data['licenses'] = self.licenses

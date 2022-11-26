@@ -7,6 +7,7 @@ from imutils import paths
 import os
 import cv2
 from joblib import Parallel, delayed
+from tqdm_joblib import tqdm_joblib
 
 
 def readAndGenerateImageSegmentation(outputPath, transformers, labelextension, i_and_imagePath):
@@ -72,9 +73,12 @@ class FolderStackLinearSemanticSegmentationAugmentor(IAugmentor):
 
     def applyAugmentation(self):
         self.readImagesAndAnnotations()
-        Parallel(n_jobs=-1)(delayed(readAndGenerateImageSegmentation)
-                            (self.outputPath,self.transformers,self.labelsExtension,x)
-                            for x in enumerate(self.imagePaths))
+        
+        # Progress bar tqdm style        
+        with tqdm_joblib(desc="Running augmentations for each image", total=len(self.imagePaths)):
+            Parallel(n_jobs=-1)(delayed(readAndGenerateImageSegmentation)
+                                (self.outputPath,self.transformers,self.labelsExtension,x)
+                                for x in enumerate(self.imagePaths))
 
 
 
