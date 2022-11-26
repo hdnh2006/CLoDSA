@@ -13,6 +13,7 @@ import cv2
 from joblib import Parallel, delayed
 import imutils
 from tqdm_joblib import tqdm_joblib
+from ..techniques.techniqueList import Techniques
 
 def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, imageInfo, annotationsInfo,ignoreClasses):
     name = imageInfo[0]
@@ -42,7 +43,23 @@ def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, ima
         except:
             print("Error in image: " + imagePath)
         (hI,wI) =newimage.shape[:2]
-        cv2.imwrite(outputPath + str(j) + "_" + name, newimage)
+        
+        # Set name to output file
+        name_technique = list(Techniques.keys())[list(Techniques.values()).index(type(transformer.technique))]
+        parameter_technique = transformer.technique.parameters
+        parameter_technique = parameter_technique if len(parameter_technique) !=0 else dict() # if techique doesn't have any parameter, create an empty dict
+      
+        # Create an empty string. This will be the final name
+        tec_par = '_'
+         
+        # Convert Dictionary to Concatenated String
+        for item in parameter_technique:
+            tec_par += item + "_"+str(parameter_technique[item]) + "_"
+        
+        tec_par = name_technique + tec_par    
+        
+        # Save image
+        cv2.imwrite(outputPath + tec_par + name, newimage)
         newSegmentations = []
         for (mask, label) in newmasklabels:
             cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
