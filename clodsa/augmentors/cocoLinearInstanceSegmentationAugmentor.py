@@ -59,8 +59,7 @@ def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, ima
         tec_par = name_technique + tec_par    
         
         # Save image
-        output_image_filename = outputPath + tec_par + name
-        cv2.imwrite(output_image_filename, newimage) # This name is used also below
+        cv2.imwrite(outputPath + tec_par + name, newimage)
         newSegmentations = []
         for (mask, label) in newmasklabels:
             cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -73,7 +72,7 @@ def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, ima
 
                 newSegmentations.append((label, cv2.boundingRect(cnts[0]), segmentation, cv2.contourArea(cnts[0])))
 
-        allNewImagesResult.append((output_image_filename, (wI, hI), newSegmentations))
+        allNewImagesResult.append((tec_par + name, (wI, hI), newSegmentations))
 
     return allNewImagesResult
 
