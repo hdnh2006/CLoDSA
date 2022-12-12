@@ -31,6 +31,7 @@ def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, ima
         maskLabels.append((mask, c))
         labels.add(c)
 
+
     if not(labels.isdisjoint(ignoreClasses)):
         newtransformer = transformerGenerator("instance_segmentation")
         none = createTechnique("none",{})
@@ -44,6 +45,7 @@ def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, ima
             print("Error in image: " + imagePath)
             print(e)
         (hI,wI) =newimage.shape[:2]
+
         
         # Set name to output file
         name_technique = list(Techniques.keys())[list(Techniques.values()).index(type(transformer.technique))]
@@ -65,8 +67,8 @@ def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, ima
         for (mask, label) in newmasklabels:
 
             cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            cnts_orig = cnts
-            cnts = cnts[0] # This is a bug and it is totally unncesart becayse opencv should be >= 4.2 according requriments ---> if imutils.is_cv2() or imutils.is_cv4() else cnts[1]
+            cnts = cnts[0] if (imutils.is_cv2() or imutils.is_cv4()) else cnts[1]
+            cnts = [np.array(cnts[np.argmax([len(l) for l in cnts])],np.int32)] # This takes the biggest polygon in case cv2.findContours returns several of them.
 
             if len(cnts)>0:
                 segmentation = [[x[0][0], x[0][1]] for x in cnts[0]]
