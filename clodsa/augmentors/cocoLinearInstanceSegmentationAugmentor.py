@@ -40,8 +40,9 @@ def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, ima
     for (j, transformer) in enumerate(transformers):
         try:
             (newimage, newmasklabels) = transformer.transform(image, maskLabels)
-        except:
+        except Exception as e:
             print("Error in image: " + imagePath)
+            print(e)
         (hI,wI) =newimage.shape[:2]
         
         # Set name to output file
@@ -62,9 +63,11 @@ def readAndGenerateInstanceSegmentation(outputPath, transformers, inputPath, ima
         cv2.imwrite(outputPath + tec_par + name, newimage)
         newSegmentations = []
         for (mask, label) in newmasklabels:
+
             cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
-            cnts = cnts[0] if imutils.is_cv2() or imutils.is_cv4() else cnts[1]
+            cnts_orig = cnts
+            cnts = cnts[0] # This is a bug and it is totally unncesart becayse opencv should be >= 4.2 according requriments ---> if imutils.is_cv2() or imutils.is_cv4() else cnts[1]
+
             if len(cnts)>0:
                 segmentation = [[x[0][0], x[0][1]] for x in cnts[0]]
                 # Closing the polygon
@@ -155,5 +158,4 @@ class COCOLinearInstanceSegmentationAugmentor(IAugmentor):
 
         os.makedirs(self.outputPath,exist_ok=True)
         with open(self.outputPath + "annotation.json", 'w') as outfile:
-            json.dump(data, outfile)
-
+            json.dump(data, outfile, indent=4)
